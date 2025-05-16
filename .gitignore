@@ -4,4 +4,4 @@ node_modules
 dist
 
 # Google Cloud Service Account Key
-*.json
+# *.json
