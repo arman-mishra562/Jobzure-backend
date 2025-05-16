@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id                  String           @id @default(cuid())
+  email               String           @unique
+  name                String?
+  password            String
+  isVerified          Boolean          @default(false)
+  verificationToken   String?
+  tokenExpiry         DateTime?
+  companyListings     CompanyListing[]
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+}
+
+model User {
+  id                  Int              @id @default(autoincrement())
+  email               String           @unique
+  name                String?
+  password            String
+  isVerified          Boolean          @default(false)
+  verificationToken   String?   // for email verification
+  tokenExpiry         DateTime?
+  resetToken          String?   // for password resets
+  resetTokenExpiry    DateTime?
+  personalDetails     PersonalDetails?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+}
+
+model PersonalDetails {
+  firstName         String
+  lastName          String
+  personalEmail     String
+  countryResident   CountryResident
+  targetJobLocation targetJobLocation
+  resumeUrl         String?
+  workAuthorization String
+  userId            Int               @unique
+  user              User              @relation(fields: [userId], references: [id])
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+model CompanyListing {
+  id                 String   @id @default(cuid())
+  name               String   @unique
+  description        String
+  registrationNumber String   @unique
+  companyLocation    String
+  targetIndustry     String
+  role               String
+  adminId            String   
+  Admin              Admin    @relation(fields: [adminId], references: [id])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+// model JobApplication{
+//   id    String    @id @default(cuid())
+//   adminId    String      @unique
+//   Admin      Admin     @relation(fields: [adminId], references: [id])
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
+
+// enum WorkAuthorizationStatus {
+//     citizen/PR
+//     Full work autoincrement
+//     Graduate visa/ opt/ psw
+//     Required visa sponsorship
+//     dependent / spouse visa
+//     other
+// }
+enum CountryResident {
+  USA
+  CANADA
+  UK
+  AUSTRALIA
+  FRANCE
+  GERMANY
+  ITALY
+}
+
+enum targetJobLocation {
+  USA
+  CANADA
+  UK
+  AUSTRALIA
+  FRANCE
+  GERMANY
+  ITALY
+  SWITZERLAND
+  JAPAN
+  CHINA
+  POLAND
+  BELGIUM
+  AUSTRIA
+  IRELAND
+  NEWZEALAND
+  PORTUGAL
+  FINLAND
+  NORWAY
+  Remote
+}
