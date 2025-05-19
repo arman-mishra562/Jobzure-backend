@@ -3,9 +3,12 @@ import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { sendVerificationEmail,sendForgetEmail } from '../service/mail.service';
+import {
+	sendVerificationEmail,
+	sendForgetEmail,
+} from '../services/mail.service';
 dotenv.config();
-import prisma from '../../config/Db';
+import prisma from '../config/Db';
 
 export const registerUser = async (req: Request, res: any) => {
 	try {
@@ -139,20 +142,24 @@ export const loginUser = async (req: Request, res: any) => {
 export const forgotPassword = async (req: Request, res: any) => {
 	try {
 		const { email } = req.body;
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) {
-    return res.json({ message: 'If that email is registered, you’ll receive a reset link.' });
-  }
+		const user = await prisma.user.findUnique({ where: { email } });
+		if (!user) {
+			return res.json({
+				message: 'If that email is registered, you’ll receive a reset link.',
+			});
+		}
 
-  const token = uuidv4();
-  const expiry = new Date(Date.now() + 3600 * 1000); // 1 hour
-  const link = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { resetToken: token, resetTokenExpiry: expiry },
-  });
-  await sendForgetEmail(email, link);
-  res.json({ message: 'If that email is registered, you’ll receive a reset link.' });
+		const token = uuidv4();
+		const expiry = new Date(Date.now() + 3600 * 1000); // 1 hour
+		const link = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+		await prisma.user.update({
+			where: { id: user.id },
+			data: { resetToken: token, resetTokenExpiry: expiry },
+		});
+		await sendForgetEmail(email, link);
+		res.json({
+			message: 'If that email is registered, you’ll receive a reset link.',
+		});
 	} catch (error) {
 		console.error('Forgot Password error:', error);
 		res.status(500).json({
@@ -166,26 +173,26 @@ export const forgotPassword = async (req: Request, res: any) => {
 export const resetPassword = async (req: Request, res: any) => {
 	try {
 		const { token, newPassword } = req.body;
-  // find user with matching token
-  const user = await prisma.user.findFirst({
-    where: {
-      resetToken: token,
-      resetTokenExpiry: { gt: new Date() },
-    },
-  });
-  if (!user) {
-    return res.status(400).json({ error: 'Invalid or expired token' });
-  }
-  const hashed = await bcrypt.hash(newPassword, 10);
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      password: hashed,
-      resetToken: null,
-      resetTokenExpiry: null,
-    },
-  });
-  res.json({ message: 'Password has been reset successfully' });
+		// find user with matching token
+		const user = await prisma.user.findFirst({
+			where: {
+				resetToken: token,
+				resetTokenExpiry: { gt: new Date() },
+			},
+		});
+		if (!user) {
+			return res.status(400).json({ error: 'Invalid or expired token' });
+		}
+		const hashed = await bcrypt.hash(newPassword, 10);
+		await prisma.user.update({
+			where: { id: user.id },
+			data: {
+				password: hashed,
+				resetToken: null,
+				resetTokenExpiry: null,
+			},
+		});
+		res.json({ message: 'Password has been reset successfully' });
 	} catch (error) {
 		console.error('Reset Password error:', error);
 		res.status(500).json({

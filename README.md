@@ -108,6 +108,8 @@ POST /user/login
 
 POST /user/logout
 
+
+
 POST /user/personalDetails
 
 GET /user/getpersonalDetails

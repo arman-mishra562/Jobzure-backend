@@ -42,13 +42,16 @@ model User {
 }
 
 model PersonalDetails {
-  firstName         String
-  lastName          String
+  full_name         String
   personalEmail     String
   countryResident   CountryResident
   targetJobLocation targetJobLocation
-  resumeUrl         String?
   workAuthorization String
+  resumeUrl         String?
+  interestedRoles   interestedRoles
+  intrstdIndstries  intrstdIndstries
+  salaryExp         Int
+  visaSponsor       Boolean
   userId            Int               @unique
   user              User              @relation(fields: [userId], references: [id])
   createdAt         DateTime          @default(now())
@@ -115,4 +118,21 @@ enum targetJobLocation {
   FINLAND
   NORWAY
   Remote
+}
+enum interestedRoles{
+  Full_Stack_Developer
+  Frontend_Developer
+  Backend_Developer
+}
+
+enum intrstdIndstries{
+  IT_SOFTWARE
+  FINANCE
+  HEALTHCARE
+  EDUCATION
+  RETAIL
+  MANUFACTURING
+  CONSULTING
+  MEDIA
+  REAL_ESTATE
 }

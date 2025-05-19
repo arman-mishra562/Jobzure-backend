@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import prisma from '../../../config/Db';
+import prisma from '../config/Db';
 
 export const verifyAdmin = async (req: Request, res: any) => {
 	try {

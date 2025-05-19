@@ -4,20 +4,22 @@ import {
 	loginUser,
 	logoutUser,
 	resend_verifyLink,
-} from './user.controller';
-import { verifyToken } from '../../middleware';
+	forgotPassword,
+	resetPassword,
+} from '../controllers/user.controller';
+import { verifyToken } from '../middlewares/middleware';
 import {
 	createOrUpdatePersonalDetails,
 	getPersonalDetails,
-} from './ValidUser/user.personal';
-import { verifyUser } from './verify/user.mail2FA';
+} from '../controllers/personalDetails.controller';
+import { verifyUser } from '../utils/user.mail2FA';
 import passport from 'passport';
 import {
 	deleteResume,
 	getResumeUrl,
 	handleResumeUpload,
 	uploadResume,
-} from './storage/user.cv';
+} from '../services/user.cv';
 
 const router = express.Router();
 
@@ -26,6 +28,8 @@ router.post('/login', passport.authenticate('local'), loginUser);
 router.post('/logout', logoutUser);
 router.get('/verify', verifyUser);
 router.post('/re-verify', resend_verifyLink);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 router.post('/personalDetails', verifyToken, createOrUpdatePersonalDetails);
 router.get('/getpersonalDetails', verifyToken, getPersonalDetails);
 router.post('/uploadResume', verifyToken, uploadResume, handleResumeUpload);

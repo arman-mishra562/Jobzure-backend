@@ -2,9 +2,9 @@ import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
-import prisma from '../../config/Db';
-import { generateOTP } from '../lib/mailOtp';
-import { sendVerificationEmail } from '../service/mail.service';
+import prisma from '../config/Db';
+import { generateOTP } from '../services/mailOtp';
+import { sendVerificationEmail } from '../services/mail.service';
 
 dotenv.config();
 
@@ -33,12 +33,10 @@ export const registerAdmin = async (req: Request, res: any) => {
 			},
 		});
 		await sendVerificationEmail(email, otp);
-		res
-			.status(201)
-			.json({
-				message: 'Admin registered successfully & verification email sent',
-				admin,
-			});
+		res.status(201).json({
+			message: 'Admin registered successfully & verification email sent',
+			admin,
+		});
 	} catch (error) {
 		console.error('Error registering admin:', error);
 		res.status(500).json({ message: 'Failed to register admin' });

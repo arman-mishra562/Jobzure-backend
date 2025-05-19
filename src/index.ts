@@ -1,12 +1,12 @@
 import express, { Request, Response } from 'express';
-import UserRouter from './internals/user/user.routes';
+import UserRouter from './routes/user.routes';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import AdminRouter from './internals/admin/admin.route';
+import AdminRouter from './routes/admin.route';
 import session from 'express-session';
 import passport from 'passport';
 import './config/passport';
-import { apiLimiter } from './internals/service/rateLimit';
+import { apiLimiter } from './services/rateLimit';
 dotenv.config();
 const app = express();
 
