@@ -81,12 +81,15 @@ export const handleResumeUpload = async (req: Request, res: any) => {
 
 				const data = {
 					resumeUrl: gcsPath,
-					firstName: '',
-					lastName: '',
+					full_name: '',
 					personalEmail: '',
 					countryResident: 'USA',
 					targetJobLocation: 'USA',
 					workAuthorization: 'NOT_SPECIFIED',
+					interestedRoles: 'Full_Stack_Developer',
+					intrstdIndstries: 'EDUCATION',
+					salaryExp: 0,
+					visaSponsor: false,
 				};
 
 				if (personalDetails) {
@@ -99,12 +102,15 @@ export const handleResumeUpload = async (req: Request, res: any) => {
 						data: {
 							resumeUrl: filename,
 							userId,
-							firstName: '',
-							lastName: '',
+							full_name: '',
 							personalEmail: '',
 							countryResident: 'USA',
 							targetJobLocation: 'USA',
 							workAuthorization: 'NOT_SPECIFIED',
+							interestedRoles: 'Full_Stack_Developer',
+							intrstdIndstries: 'EDUCATION',
+							salaryExp: 0,
+							visaSponsor: false,
 						},
 					});
 				}
