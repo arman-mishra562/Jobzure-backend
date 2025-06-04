@@ -32,7 +32,7 @@ export const sendForgetEmail = async (email: string, link: string) => {
 		from: `"Jobzure Forgot Password" <${process.env.EMAIL_USER}>`,
 		to: email,
 		subject: 'Reset your Password',
-		text: `<h2>Password Reset Request</h2><br><p>Click the link below to reset your password (valid for 1 hour):</p><br><a href="${link}">Reset Password</a>`,
+		html: `<h2>Password Reset Request</h2><br><p>Click the link below to reset your password (valid for 1 hour):</p><br><a href="${link}">Reset Password</a>`,
 	};
 
 	try {
