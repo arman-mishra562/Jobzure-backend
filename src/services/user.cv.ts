@@ -12,7 +12,7 @@ if (!keyFileJson) {
 }
 const storage = new Storage({
 	projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-	keyFilename: JSON.parse(keyFileJson),
+	credentials: JSON.parse(keyFileJson),
 });
 
 const bucket = storage.bucket(
