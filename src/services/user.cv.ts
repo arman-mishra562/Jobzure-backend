@@ -4,9 +4,15 @@ import { Storage } from '@google-cloud/storage';
 import path from 'path';
 import prisma from '../config/Db';
 
+const keyFileJson = process.env.GOOGLE_CLOUD_KEYFILE_PATH;
+if (!keyFileJson) {
+	throw new Error(
+		'Missing GOOGLE_CLOUD_KEYFILE_JSON in environment variables.',
+	);
+}
 const storage = new Storage({
 	projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-	keyFilename: process.env.GOOGLE_CLOUD_KEYFILE_PATH,
+	keyFilename: JSON.parse(keyFileJson),
 });
 
 const bucket = storage.bucket(
@@ -79,18 +85,18 @@ export const handleResumeUpload = async (req: Request, res: any) => {
 					where: { userId },
 				});
 
-				const data = {
-					resumeUrl: gcsPath,
-					full_name: '',
-					personalEmail: '',
-					countryResident: 'USA',
-					targetJobLocation: 'USA',
-					workAuthorization: 'NOT_SPECIFIED',
-					interestedRoles: 'Full_Stack_Developer',
-					intrstdIndstries: 'EDUCATION',
-					salaryExp: 0,
-					visaSponsor: false,
-				};
+				// const data = {
+				// 	resumeUrl: gcsPath,
+				// 	full_name: '',
+				// 	personalEmail: '',
+				// 	countryResident: 'USA',
+				// 	targetJobLocation: 'USA',
+				// 	workAuthorization: 'NOT_SPECIFIED',
+				// 	interestedRoles: 'Full_Stack_Developer',
+				// 	intrstdIndstries: 'EDUCATION',
+				// 	salaryExp: 0,
+				// 	visaSponsor: false,
+				// };
 
 				if (personalDetails) {
 					await prisma.personalDetails.update({
