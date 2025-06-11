@@ -42,20 +42,21 @@ model User {
 }
 
 model PersonalDetails {
-  full_name         String
-  personalEmail     String
-  countryResident   CountryResident
-  targetJobLocation targetJobLocation
-  workAuthorization String
-  resumeUrl         String?
-  interestedRoles   interestedRoles
-  intrstdIndstries  intrstdIndstries
-  salaryExp         Int
-  visaSponsor       Boolean
-  userId            Int               @unique
-  user              User              @relation(fields: [userId], references: [id])
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  id                  Int                 @id @default(autoincrement())
+  full_name           String
+  personalEmail       String
+  countryResident     CountryResident
+  workAuthorization   String
+  salaryExp           Int
+  visaSponsor         Boolean
+  resumeUrl           String?
+  userId              Int                @unique
+  user                User               @relation(fields: [userId], references: [id])
+  targetJobLocation TargetJobLocation[] @relation("JobLocations")
+  interestedRoles   InterestedRole[]     @relation("Roles")
+  intrstdIndstries  InterestedIndustry[] @relation("Industries")
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 }
 
 model CompanyListing {
@@ -72,22 +73,30 @@ model CompanyListing {
   updatedAt          DateTime @updatedAt
 }
 
-// model JobApplication{
-//   id    String    @id @default(cuid())
-//   adminId    String      @unique
-//   Admin      Admin     @relation(fields: [adminId], references: [id])
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-// }
+model TargetJobLocation {
+  value           String            @id
+  personalDetails PersonalDetails[] @relation("JobLocations")
+}
 
-// enum WorkAuthorizationStatus {
-//     citizen/PR
-//     Full work autoincrement
-//     Graduate visa/ opt/ psw
-//     Required visa sponsorship
-//     dependent / spouse visa
-//     other
-// }
+model InterestedRole {
+  value           String            @id
+  personalDetails PersonalDetails[] @relation("Roles")
+}
+
+model InterestedIndustry {
+  value           String            @id
+  personalDetails PersonalDetails[] @relation("Industries")
+}
+
+enum Status{
+  APPLIED
+  REVIEWING
+  SHORTLISTED
+  REJECTED
+  PENDING_INTERVIEW
+  HIRED
+}
+
 enum CountryResident {
   USA
   CANADA
@@ -96,43 +105,4 @@ enum CountryResident {
   FRANCE
   GERMANY
   ITALY
-}
-
-enum targetJobLocation {
-  USA
-  CANADA
-  UK
-  AUSTRALIA
-  FRANCE
-  GERMANY
-  ITALY
-  SWITZERLAND
-  JAPAN
-  CHINA
-  POLAND
-  BELGIUM
-  AUSTRIA
-  IRELAND
-  NEWZEALAND
-  PORTUGAL
-  FINLAND
-  NORWAY
-  Remote
-}
-enum interestedRoles{
-  Full_Stack_Developer
-  Frontend_Developer
-  Backend_Developer
-}
-
-enum intrstdIndstries{
-  IT_SOFTWARE
-  FINANCE
-  HEALTHCARE
-  EDUCATION
-  RETAIL
-  MANUFACTURING
-  CONSULTING
-  MEDIA
-  REAL_ESTATE
 }

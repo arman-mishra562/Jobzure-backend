@@ -20,6 +20,7 @@ import {
 	handleResumeUpload,
 	uploadResume,
 } from '../services/user.cv';
+import { asyncHandler } from '../utils/asyncHandler';
 
 const router = express.Router();
 
@@ -30,8 +31,16 @@ router.get('/verify', verifyUser);
 router.post('/re-verify', resend_verifyLink);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
-router.post('/personalDetails', verifyToken, createOrUpdatePersonalDetails);
-router.get('/getpersonalDetails', verifyToken, getPersonalDetails);
+router.post(
+	'/personalDetails',
+	verifyToken,
+	asyncHandler(createOrUpdatePersonalDetails),
+);
+router.get(
+	'/getpersonalDetails',
+	verifyToken,
+	asyncHandler(getPersonalDetails),
+);
 router.post('/uploadResume', verifyToken, uploadResume, handleResumeUpload);
 router.get('/getResumeUrl', verifyToken, getResumeUrl);
 router.post('/deleteResume', verifyToken, deleteResume);

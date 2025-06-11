@@ -111,10 +111,16 @@ export const handleResumeUpload = async (req: Request, res: any) => {
 							full_name: '',
 							personalEmail: '',
 							countryResident: 'USA',
-							targetJobLocation: 'USA',
 							workAuthorization: 'NOT_SPECIFIED',
-							interestedRoles: 'Full_Stack_Developer',
-							intrstdIndstries: 'EDUCATION',
+							targetJobLocation: {
+								connect: { value: 'USA' },
+							},
+							interestedRoles: {
+								connect: [{ value: 'Full_Stack_Developer' }],
+							},
+							intrstdIndstries: {
+								connect: [{ value: 'EDUCATION' }],
+							},
 							salaryExp: 0,
 							visaSponsor: false,
 						},
