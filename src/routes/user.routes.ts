@@ -41,7 +41,12 @@ router.get(
 	verifyToken,
 	asyncHandler(getPersonalDetails),
 );
-router.post('/uploadResume', verifyToken, uploadResume, handleResumeUpload);
-router.get('/getResumeUrl', verifyToken, getResumeUrl);
-router.post('/deleteResume', verifyToken, deleteResume);
+router.post(
+	'/uploadResume',
+	verifyToken,
+	uploadResume,
+	asyncHandler(handleResumeUpload),
+);
+router.get('/getResumeUrl', verifyToken, asyncHandler(getResumeUrl));
+router.post('/deleteResume', verifyToken, asyncHandler(deleteResume));
 export default router;
