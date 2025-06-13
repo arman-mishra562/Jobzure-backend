@@ -52,18 +52,37 @@ passport.use('admin-local',
 );
 
 passport.serializeUser((user: any, done) => {
+	if (!user || !user.id) {
+		return done(new Error('Invalid user object'));
+	}
 	done(null, { id: user.id, type: user.email ? 'user' : 'admin' });
 });
 
-passport.deserializeUser(async (data: { id: string | number; type: string }, done) => {
+passport.deserializeUser(async (data: any, done) => {
 	try {
+		if (!data || !data.id || !data.type) {
+			return done(new Error('Invalid session data'));
+		}
+
 		if (data.type === 'user') {
+			const userId = typeof data.id === 'string' ? parseInt(data.id) : data.id;
+			if (isNaN(userId)) {
+				return done(new Error('Invalid user ID'));
+			}
 			const user = await prisma.user.findUnique({
-				where: { id: typeof data.id === 'string' ? parseInt(data.id) : data.id }
+				where: { id: userId }
 			});
+			if (!user) {
+				return done(new Error('User not found'));
+			}
 			done(null, user);
 		} else {
-			const admin = await prisma.admin.findUnique({ where: { id: data.id as string } });
+			const admin = await prisma.admin.findUnique({
+				where: { id: data.id as string }
+			});
+			if (!admin) {
+				return done(new Error('Admin not found'));
+			}
 			done(null, admin);
 		}
 	} catch (error) {
