@@ -39,14 +39,15 @@ export const createOrUpdatePersonalDetails = async (
 			});
 		}
 
-		const targetLocationConnect: { value: string }[] = targetJobLocation.map(
+		const targetLocationConnect = targetJobLocation.map((value: string) => ({
+			value,
+		}));
+		const interestedRolesConnect = interestedRoles.map((value: string) => ({
+			value,
+		}));
+		const interestedIndustriesConnect = intrstdIndstries.map(
 			(value: string) => ({ value }),
 		);
-		const interestedRolesConnect: { value: string }[] = interestedRoles.map(
-			(value: string) => ({ value }),
-		);
-		const interestedIndustriesConnect: { value: string }[] =
-			intrstdIndstries.map((value: string) => ({ value }));
 
 		const existingDetails = await prisma.personalDetails.findUnique({
 			where: { userId },
@@ -65,7 +66,7 @@ export const createOrUpdatePersonalDetails = async (
 					salaryExp,
 					visaSponsor,
 					targetJobLocation: {
-						set: [], // Clear old relations
+						set: [], // Clear all first
 						connect: targetLocationConnect,
 					},
 					interestedRoles: {

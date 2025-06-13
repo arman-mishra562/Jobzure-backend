@@ -3,19 +3,24 @@ import prisma from '../config/Db';
 
 export const verifyAdmin = async (req: Request, res: any) => {
 	try {
-		const { email, code } = req.body;
+		const { token } = req.query;
+		if (!token) return res.status(400).json({ error: 'Token is required.' });
 
-		const admin = await prisma.admin.findUnique({
-			where: { email },
+		const admin = await prisma.admin.findFirst({
+			where: { verificationToken: token as string },
 		});
 
-		if (!admin) return res.status(404).json({ message: 'Admin not found' });
-		if (admin.isVerified)
+		if (!admin) {
+			return res.status(400).json({ error: 'Invalid or expired verification link.' });
+		}
+
+		if (admin.isVerified) {
 			return res.status(400).json({ message: 'Admin already verified' });
-		if (admin.verificationToken !== code)
-			return res.status(401).json({ message: 'Invalid OTP' });
-		if (admin.tokenExpiry! < new Date())
-			return res.status(401).json({ message: 'OTP expired' });
+		}
+
+		if (admin.tokenExpiry! < new Date()) {
+			return res.status(401).json({ message: 'Verification link expired' });
+		}
 
 		await prisma.admin.update({
 			where: { id: admin.id },

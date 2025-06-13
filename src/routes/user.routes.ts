@@ -25,7 +25,7 @@ import { asyncHandler } from '../utils/asyncHandler';
 const router = express.Router();
 
 router.post('/register', registerUser);
-router.post('/login', passport.authenticate('local'), loginUser);
+router.post('/login', passport.authenticate('user-local'), loginUser);
 router.post('/logout', logoutUser);
 router.get('/verify', verifyUser);
 router.post('/re-verify', resend_verifyLink);
@@ -41,12 +41,7 @@ router.get(
 	verifyToken,
 	asyncHandler(getPersonalDetails),
 );
-router.post(
-	'/uploadResume',
-	verifyToken,
-	uploadResume,
-	asyncHandler(handleResumeUpload),
-);
-router.get('/getResumeUrl', verifyToken, asyncHandler(getResumeUrl));
-router.post('/deleteResume', verifyToken, asyncHandler(deleteResume));
+router.post('/uploadResume', verifyToken, uploadResume, handleResumeUpload);
+router.get('/getResumeUrl', verifyToken, getResumeUrl);
+router.post('/deleteResume', verifyToken, deleteResume);
 export default router;

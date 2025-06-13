@@ -21,6 +21,8 @@ model Admin {
   isVerified          Boolean          @default(false)
   verificationToken   String?
   tokenExpiry         DateTime?
+  resetToken          String?   // for password resets
+  resetTokenExpiry    DateTime?
   companyListings     CompanyListing[]
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
