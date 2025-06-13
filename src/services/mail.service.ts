@@ -16,7 +16,7 @@ export const sendVerificationEmail = async (email: string, link: string) => {
 		from: `"Jobzure Verification" <${process.env.EMAIL_USER}>`,
 		to: email,
 		subject: 'Verify Your Account',
-		text: `Your verification link is: <a href="${link}">Verify your email</a>`,
+		html: `<h2>Your verification link is Below</h2><br><p> <a href="${link}">Verify your email</a></p>`,
 	};
 
 	try {
