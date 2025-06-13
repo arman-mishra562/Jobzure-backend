@@ -58,7 +58,9 @@ passport.serializeUser((user: any, done) => {
 passport.deserializeUser(async (data: { id: string | number; type: string }, done) => {
 	try {
 		if (data.type === 'user') {
-			const user = await prisma.user.findUnique({ where: { id: data.id as number } });
+			const user = await prisma.user.findUnique({
+				where: { id: typeof data.id === 'string' ? parseInt(data.id) : data.id }
+			});
 			done(null, user);
 		} else {
 			const admin = await prisma.admin.findUnique({ where: { id: data.id as string } });
