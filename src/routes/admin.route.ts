@@ -17,7 +17,7 @@ const AdminRouter = express.Router();
 AdminRouter.post('/register', registerAdmin);
 AdminRouter.post('/login', passport.authenticate('admin-local'), loginAdmin);
 AdminRouter.post('/logout', logoutAdmin);
-AdminRouter.post('/verify', verifyAdmin);
+AdminRouter.get('/verify', verifyAdmin);
 AdminRouter.post('/re-verify', resend_verifyLink);
 AdminRouter.post('/forgot-password', forgotPassword);
 AdminRouter.post('/reset-password', resetPassword);
