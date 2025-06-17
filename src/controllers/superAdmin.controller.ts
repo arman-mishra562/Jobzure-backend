@@ -106,9 +106,12 @@ export const assignUsersToAdmin = async (req: Request, res: Response) => {
     try {
         const { adminId, userIds } = req.body;
 
-        // Verify the admin exists
+        if (!adminId || !userIds || !Array.isArray(userIds) || userIds.length === 0) {
+            return res.status(400).json({ message: 'Admin ID and user IDs are required' });
+        }
+
         const admin = await prisma.admin.findUnique({
-            where: { id: adminId }
+            where: { id: adminId },
         });
 
         if (!admin) {
@@ -150,33 +153,19 @@ export const assignUsersToAdmin = async (req: Request, res: Response) => {
 
 export const getAdminUsers = async (req: Request, res: Response) => {
     try {
-        const adminId = req.adminId;
-
-        const users = await prisma.user.findMany({
-            where: {
-                assignedAdminId: adminId
-            },
+        const admins = await prisma.admin.findMany({
             include: {
-                personalDetails: {
-                    include: {
-                        targetJobLocation: true,
-                        interestedRoles: true,
-                        intrstdIndstries: true
-                    }
-                }
+                assignedUsers: true
             }
         });
 
         res.status(200).json({
-            message: 'Users retrieved successfully',
-            users
+            message: 'Admin users retrieved successfully',
+            admins
         });
     } catch (error) {
         console.error('Error retrieving admin users:', error);
-        res.status(500).json({
-            message: 'Failed to retrieve users',
-            error: error instanceof Error ? error.message : 'Unknown error'
-        });
+        res.status(500).json({ message: 'Failed to retrieve admin users' });
     }
 };
 
