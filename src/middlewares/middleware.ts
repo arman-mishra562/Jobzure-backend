@@ -12,6 +12,7 @@ declare global {
 		interface Request {
 			userId?: number;
 			adminId?: string;
+			superAdminId?: string;
 		}
 	}
 }
@@ -119,5 +120,53 @@ export const verifyTokenAdmin = async (
 			res.status(401).json({ message: 'Unauthorized' });
 		}
 		return;
+	}
+};
+
+export const verifyTokenSuperAdmin = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith('Bearer ')) {
+			res.status(401).json({ message: 'Authorization token required' });
+			return;
+		}
+
+		const token = authHeader.split(' ')[1];
+
+		if (!process.env.JWT_SECRET_SUPER_ADMIN) {
+			console.error('JWT_SECRET_SUPER_ADMIN is not defined in environment variables');
+			res.status(500).json({ message: 'Internal server error' });
+			return;
+		}
+
+		const decoded = jwt.verify(token, process.env.JWT_SECRET_SUPER_ADMIN) as {
+			superAdminId: string;
+		};
+
+		const superAdmin = await prisma.superAdmin.findUnique({
+			where: { id: decoded.superAdminId },
+		});
+
+		if (!superAdmin) {
+			res.status(401).json({ message: 'Super Admin not found' });
+			return;
+		}
+
+		req.superAdminId = decoded.superAdminId;
+		next();
+	} catch (error) {
+		if (error instanceof jwt.TokenExpiredError) {
+			res.status(401).json({ message: 'Token expired' });
+		} else if (error instanceof jwt.JsonWebTokenError) {
+			res.status(401).json({ message: 'Invalid token' });
+		} else {
+			console.error('Authentication error:', error);
+			res.status(401).json({ message: 'Unauthorized' });
+		}
 	}
 };

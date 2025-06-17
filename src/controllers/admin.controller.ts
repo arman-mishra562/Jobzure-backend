@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config();
 
-export const registerAdmin = async (req: Request, res: any) => {
+export const registerAdmin = async (req: Request, res: Response): Promise<void> => {
 	try {
 		const { email, name, password } = req.body;
 		const token = uuidv4();
@@ -21,7 +21,8 @@ export const registerAdmin = async (req: Request, res: any) => {
 			where: { email },
 		});
 		if (existingEmail) {
-			return res.status(409).json({ message: 'Email already exists' });
+			res.status(409).json({ message: 'Email already exists' });
+			return;
 		}
 		const admin = await prisma.admin.create({
 			data: {
@@ -29,7 +30,7 @@ export const registerAdmin = async (req: Request, res: any) => {
 				name,
 				password: hashedPassword,
 				verificationToken: token,
-				tokenExpiry: expiry,
+				tokenExpiry: expiry
 			},
 		});
 		await sendVerificationEmail(email, verifyUrl);
@@ -48,31 +49,34 @@ export const registerAdmin = async (req: Request, res: any) => {
 	}
 };
 
-export const loginAdmin = async (req: Request, res: any) => {
+export const loginAdmin = async (req: Request, res: Response): Promise<void> => {
 	try {
 		const { email, password } = req.body;
 		if (!email || !password) {
-			return res
-				.status(400)
-				.json({ message: 'Email and password are required' });
+			res.status(400).json({ message: 'Email and password are required' });
+			return;
 		}
 		const admin = await prisma.admin.findUnique({ where: { email } });
 		if (!admin) {
-			return res.status(401).json({ message: 'Invalid email or password' });
+			res.status(401).json({ message: 'Invalid email or password' });
+			return;
 		}
 		const isValidPassword = await bcrypt.compare(password, admin.password);
 		if (!isValidPassword) {
-			return res.status(401).json({ message: 'Invalid email or password' });
+			res.status(401).json({ message: 'Invalid email or password' });
+			return;
 		}
 		if (!process.env.JWT_SECRET_ADMIN) {
 			console.error('JWT_SECRET_ADMIN is not defined in environment variables');
-			return res.status(500).json({ message: 'Internal server error' });
+			res.status(500).json({ message: 'Internal server error' });
+			return;
 		}
 		if (!admin.isVerified) {
-			return res.status(403).json({
+			res.status(403).json({
 				message: 'Account not verified. Please check your email for verification link',
 				isVerified: false,
 			});
+			return;
 		}
 		const token = jwt.sign(
 			{ adminId: admin.id },
@@ -108,7 +112,7 @@ export const logoutAdmin = (req: Request, res: Response) => {
 	});
 };
 
-export const resend_verifyLink = async (req: Request, res: any) => {
+export const resend_verifyLink = async (req: Request, res: Response): Promise<void> => {
 	try {
 		const { email } = req.body;
 		const admin = await prisma.admin.findUnique({ where: { email } });
@@ -148,14 +152,15 @@ export const resend_verifyLink = async (req: Request, res: any) => {
 	}
 };
 
-export const forgotPassword = async (req: Request, res: any) => {
+export const forgotPassword = async (req: Request, res: Response): Promise<void> => {
 	try {
 		const { email } = req.body;
 		const admin = await prisma.admin.findUnique({ where: { email } });
 		if (!admin) {
-			return res.json({
+			res.json({
 				message: "If that email is registered, you'll receive a reset link.",
 			});
+			return;
 		}
 
 		const token = uuidv4();
@@ -180,7 +185,7 @@ export const forgotPassword = async (req: Request, res: any) => {
 	}
 };
 
-export const resetPassword = async (req: Request, res: any) => {
+export const resetPassword = async (req: Request, res: Response): Promise<void> => {
 	try {
 		const { token, newPassword } = req.body;
 		const admin = await prisma.admin.findFirst({
@@ -191,7 +196,8 @@ export const resetPassword = async (req: Request, res: any) => {
 		});
 
 		if (!admin) {
-			return res.status(400).json({ error: 'Invalid or expired token' });
+			res.status(400).json({ error: 'Invalid or expired token' });
+			return;
 		}
 
 		const hashed = await bcrypt.hash(newPassword, 10);
@@ -210,6 +216,209 @@ export const resetPassword = async (req: Request, res: any) => {
 		res.status(500).json({
 			message: 'Failed to Reset Password',
 			error: error instanceof Error ? error.message : 'Internal server error',
+		});
+	}
+};
+
+export const getAssignedUsers = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const adminId = req.adminId;
+		const users = await prisma.user.findMany({
+			where: {
+				assignedAdminId: adminId
+			},
+			include: {
+				personalDetails: {
+					include: {
+						targetJobLocation: true,
+						interestedRoles: true,
+						intrstdIndstries: true
+					}
+				}
+			}
+		});
+		res.status(200).json({
+			message: 'Assigned users retrieved successfully',
+			users
+		});
+	} catch (error) {
+		console.error('Error retrieving assigned users:', error);
+		res.status(500).json({
+			message: 'Failed to retrieve assigned users',
+			error: error instanceof Error ? error.message : 'Unknown error'
+		});
+	}
+};
+
+export const getAssignedUserDetails = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const adminId = req.adminId;
+		const { userId } = req.params;
+		const user = await prisma.user.findFirst({
+			where: {
+				id: parseInt(userId),
+				assignedAdminId: adminId
+			},
+			include: {
+				personalDetails: {
+					include: {
+						targetJobLocation: true,
+						interestedRoles: true,
+						intrstdIndstries: true
+					}
+				}
+			}
+		});
+		if (!user) {
+			res.status(404).json({
+				message: 'User not found or not assigned to this admin'
+			});
+			return;
+		}
+		res.status(200).json({
+			message: 'User details retrieved successfully',
+			user
+		});
+	} catch (error) {
+		console.error('Error retrieving user details:', error);
+		res.status(500).json({
+			message: 'Failed to retrieve user details',
+			error: error instanceof Error ? error.message : 'Unknown error'
+		});
+	}
+};
+
+export const updateAssignedUserDetails = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const adminId = req.adminId;
+		const { userId } = req.params;
+		const { name, email } = req.body;
+		const existingUser = await prisma.user.findFirst({
+			where: {
+				id: parseInt(userId),
+				assignedAdminId: adminId
+			}
+		});
+		if (!existingUser) {
+			res.status(404).json({
+				message: 'User not found or not assigned to this admin'
+			});
+			return;
+		}
+		if (email && email !== existingUser.email) {
+			const emailExists = await prisma.user.findUnique({
+				where: { email }
+			});
+			if (emailExists) {
+				res.status(409).json({ message: 'Email already exists' });
+				return;
+			}
+		}
+		const updatedUser = await prisma.user.update({
+			where: { id: parseInt(userId) },
+			data: {
+				name: name || existingUser.name,
+				email: email || existingUser.email
+			}
+		});
+		res.status(200).json({
+			message: 'User details updated successfully',
+			user: {
+				id: updatedUser.id,
+				email: updatedUser.email,
+				name: updatedUser.name,
+				isVerified: updatedUser.isVerified,
+			}
+		});
+	} catch (error) {
+		console.error('Error updating user details:', error);
+		res.status(500).json({
+			message: 'Failed to update user details',
+			error: error instanceof Error ? error.message : 'Unknown error'
+		});
+	}
+};
+
+export const getAssignedUserPersonalDetails = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const adminId = req.adminId;
+		const { userId } = req.params;
+		const user = await prisma.user.findFirst({
+			where: {
+				id: parseInt(userId),
+				assignedAdminId: adminId
+			},
+			include: {
+				personalDetails: {
+					include: {
+						targetJobLocation: true,
+						interestedRoles: true,
+						intrstdIndstries: true
+					}
+				}
+			}
+		});
+		if (!user) {
+			res.status(404).json({
+				message: 'User not found or not assigned to this admin'
+			});
+			return;
+		}
+		if (!user.personalDetails) {
+			res.status(404).json({
+				message: 'Personal details not found for this user'
+			});
+			return;
+		}
+		res.status(200).json({
+			message: 'User personal details retrieved successfully',
+			personalDetails: user.personalDetails
+		});
+	} catch (error) {
+		console.error('Error retrieving user personal details:', error);
+		res.status(500).json({
+			message: 'Failed to retrieve user personal details',
+			error: error instanceof Error ? error.message : 'Unknown error'
+		});
+	}
+};
+
+export const verifyAdmin = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { token } = req.query;
+
+		if (!token) {
+			res.status(400).json({ message: 'Verification token is required' });
+			return;
+		}
+
+		const admin = await prisma.admin.findFirst({
+			where: {
+				verificationToken: token as string,
+				tokenExpiry: { gt: new Date() }
+			}
+		});
+
+		if (!admin) {
+			res.status(400).json({ message: 'Invalid or expired verification token' });
+			return;
+		}
+
+		await prisma.admin.update({
+			where: { id: admin.id },
+			data: {
+				isVerified: true,
+				verificationToken: null,
+				tokenExpiry: null
+			}
+		});
+
+		res.status(200).json({ message: 'Email verified successfully' });
+	} catch (error) {
+		console.error('Error verifying admin:', error);
+		res.status(500).json({
+			message: 'Failed to verify email',
+			error: error instanceof Error ? error.message : 'Unknown error'
 		});
 	}
 };

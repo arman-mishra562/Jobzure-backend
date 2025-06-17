@@ -2,7 +2,8 @@ import express, { Request, Response } from 'express';
 import UserRouter from './routes/user.routes';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import AdminRouter from './routes/admin.route';
+import AdminRouter from './routes/admin.routes';
+import SuperAdminRouter from './routes/superAdmin.routes';
 import session from 'express-session';
 import passport from 'passport';
 import './config/passport';
@@ -40,6 +41,7 @@ app.use(passport.session());
 
 app.use('/api/v1/user', UserRouter);
 app.use('/api/v1/admin', AdminRouter);
+app.use('/api/v1/super-admin', SuperAdminRouter);
 app.get('/api/v1', (req: Request, res: Response) => {
 	res.send('Hello World!');
 });
