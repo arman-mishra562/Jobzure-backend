@@ -67,15 +67,24 @@ export const createOrUpdatePersonalDetails = async (
 					visaSponsor,
 					targetJobLocation: {
 						set: [], // Clear all first
-						connect: targetLocationConnect,
+						connectOrCreate: targetJobLocation.map((value: string) => ({
+							where: { value },
+							create: { value },
+						})),
 					},
 					interestedRoles: {
 						set: [],
-						connect: interestedRolesConnect,
+						connectOrCreate: interestedRoles.map((value: string) => ({
+							where: { value },
+							create: { value },
+						})),
 					},
 					intrstdIndstries: {
 						set: [],
-						connect: interestedIndustriesConnect,
+						connectOrCreate: intrstdIndstries.map((value: string) => ({
+							where: { value },
+							create: { value },
+						})),
 					},
 				},
 				include: {
@@ -95,13 +104,22 @@ export const createOrUpdatePersonalDetails = async (
 					visaSponsor,
 					userId,
 					targetJobLocation: {
-						connect: targetLocationConnect,
+						connectOrCreate: targetJobLocation.map((value: string) => ({
+							where: { value },
+							create: { value },
+						})),
 					},
 					interestedRoles: {
-						connect: interestedRolesConnect,
+						connectOrCreate: interestedRoles.map((value: string) => ({
+							where: { value },
+							create: { value },
+						})),
 					},
 					intrstdIndstries: {
-						connect: interestedIndustriesConnect,
+						connectOrCreate: intrstdIndstries.map((value: string) => ({
+							where: { value },
+							create: { value },
+						})),
 					},
 				},
 				include: {

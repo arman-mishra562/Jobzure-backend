@@ -56,6 +56,21 @@ npx prisma migrate dev
 npx prisma generate
 ```
 
+### Seed the Database
+
+After running migrations, seed the database with initial data:
+
+```bash
+# Run the seed script
+pnpm run seed
+```
+
+This will populate the database with common values for:
+
+- Target job locations (USA, Canada, UK, etc.)
+- Interested roles (Full Stack Developer, Frontend Developer, etc.)
+- Interested industries (Education, Healthcare, Finance, etc.)
+
 ## Environment Variables 🛠️
 
 Create a `.env` file in the root directory with the following variables:
@@ -76,6 +91,9 @@ pnpm run dev
 
 - `pnpm run build`: Build the application
 - `pnpm run dev`: Run the development server
+- `pnpm run seed`: Seed the database with initial data
+- `pnpm run migrate`: Run database migrations
+- `pnpm run generate`: Generate Prisma client
 
 ## API Documentation 📚
 

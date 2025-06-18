@@ -13,6 +13,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// @seed="ts-node prisma/seed.ts"
+
 model Admin {
   id                  String           @id @default(cuid())
   email               String           @unique
