@@ -14,10 +14,16 @@ const app = express();
 
 app.use(
 	cors({
-		origin: '*',
-		methods: ['GET', 'POST', 'PUT', 'DELETE'],
-		allowedHeaders: ['Content-Type', 'Authorization'],
+		origin: [
+			'http://localhost:3000',
+			'http://localhost:3001',
+			'https://www.jobzure.com',
+			'https://jobzure.com',
+		],
 		credentials: true,
+		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+		allowedHeaders: ['Content-Type', 'Authorization'],
+		optionsSuccessStatus: 200,
 	}),
 );
 
