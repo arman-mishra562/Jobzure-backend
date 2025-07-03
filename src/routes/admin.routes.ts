@@ -11,10 +11,14 @@ import {
     updateAssignedUserDetails,
     getAssignedUserPersonalDetails,
     logoutAdmin,
-    resend_verifyLink
+    resend_verifyLink,
+    createUserApplication,
+    listUserApplications,
+    updateUserApplication,
+    markUserAsCompleted
 } from '../controllers/admin.controller';
-import { createCompanyListing } from '../utils/admin.companylisting';
 import passport from 'passport';
+import { asyncHandler } from '../utils/asyncHandler';
 
 const router = express.Router();
 
@@ -27,13 +31,18 @@ router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.post('/logout', verifyTokenAdmin, logoutAdmin);
 
-// Company listing routes (protected)
-router.post('/company-listing', verifyTokenAdmin, createCompanyListing);
-
 // Assigned users routes (protected)
 router.get('/assigned-users', verifyTokenAdmin, getAssignedUsers);
 router.get('/assigned-users/:userId', verifyTokenAdmin, getAssignedUserDetails);
 router.put('/assigned-users/:userId', verifyTokenAdmin, updateAssignedUserDetails);
 router.get('/assigned-users/:userId/personal-details', verifyTokenAdmin, getAssignedUserPersonalDetails);
+
+// Application management routes (protected)
+router.post('/assigned-users/:userId/applications', verifyTokenAdmin, asyncHandler(createUserApplication));
+router.get('/assigned-users/:userId/applications', verifyTokenAdmin, asyncHandler(listUserApplications));
+router.put('/assigned-users/:userId/applications/:applicationId', verifyTokenAdmin, asyncHandler(updateUserApplication));
+
+// Mark user as completed (protected)
+router.post('/assigned-users/:userId/complete', verifyTokenAdmin, asyncHandler(markUserAsCompleted));
 
 export default router; 

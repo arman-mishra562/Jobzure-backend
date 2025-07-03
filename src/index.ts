@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import AdminRouter from './routes/admin.routes';
 import SuperAdminRouter from './routes/superAdmin.routes';
+import ApplicationRouter from './routes/application.routes';
 import session from 'express-session';
 import passport from 'passport';
 import './config/passport';
@@ -13,7 +14,7 @@ const app = express();
 
 app.use(
 	cors({
-		origin: process.env.CORS_ORIGIN,
+		origin: '*',
 		methods: ['GET', 'POST', 'PUT', 'DELETE'],
 		allowedHeaders: ['Content-Type', 'Authorization'],
 		credentials: true,
@@ -42,6 +43,7 @@ app.use(passport.session());
 app.use('/api/v1/user', UserRouter);
 app.use('/api/v1/admin', AdminRouter);
 app.use('/api/v1/super-admin', SuperAdminRouter);
+app.use('/api/v1/application', ApplicationRouter);
 app.get('/api/v1', (req: Request, res: Response) => {
 	res.send('Hello World!');
 });

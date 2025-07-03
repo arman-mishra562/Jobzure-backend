@@ -170,3 +170,50 @@ export const verifyTokenSuperAdmin = async (
 		}
 	}
 };
+
+// Middleware to allow access if either admin or super admin is authenticated
+export const verifyAdminOrSuperAdmin = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const authHeader = req.headers.authorization;
+		if (!authHeader || !authHeader.startsWith('Bearer ')) {
+			res.status(401).json({ message: 'Authorization token required' });
+			return;
+		}
+		const token = authHeader.split(' ')[1];
+		let adminValid = false;
+		let superAdminValid = false;
+		// Try admin token
+		if (process.env.JWT_SECRET_ADMIN) {
+			try {
+				const decoded = jwt.verify(token, process.env.JWT_SECRET_ADMIN) as { adminId: string };
+				const admin = await prisma.admin.findUnique({ where: { id: decoded.adminId } });
+				if (admin) {
+					req.adminId = decoded.adminId;
+					adminValid = true;
+				}
+			} catch { }
+		}
+		// Try super admin token
+		if (!adminValid && process.env.JWT_SECRET_SUPER_ADMIN) {
+			try {
+				const decoded = jwt.verify(token, process.env.JWT_SECRET_SUPER_ADMIN) as { superAdminId: string };
+				const superAdmin = await prisma.superAdmin.findUnique({ where: { id: decoded.superAdminId } });
+				if (superAdmin) {
+					req.superAdminId = decoded.superAdminId;
+					superAdminValid = true;
+				}
+			} catch { }
+		}
+		if (adminValid || superAdminValid) {
+			await next();
+			return;
+		}
+		res.status(401).json({ message: 'Unauthorized: Not admin or super admin' });
+	} catch (error) {
+		res.status(401).json({ message: 'Unauthorized: Not admin or super admin' });
+	}
+};

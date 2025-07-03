@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/Db';
 import { sendVerificationEmail, sendForgetEmail } from '../services/mail.service';
 import { v4 as uuidv4 } from 'uuid';
+import { processAssignmentQueue } from './superAdmin.controller';
 
 dotenv.config();
 
@@ -420,5 +421,90 @@ export const verifyAdmin = async (req: Request, res: Response): Promise<void> =>
 			message: 'Failed to verify email',
 			error: error instanceof Error ? error.message : 'Unknown error'
 		});
+	}
+};
+
+// Create application for a user (admin only for assigned users)
+export const createUserApplication = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const adminId = req.adminId;
+		const { userId } = req.params;
+		const { companyName, role, applicationDate, status } = req.body;
+
+		// Check if user is assigned to this admin
+		const user = await prisma.user.findUnique({ where: { id: parseInt(userId), assignedAdminId: adminId } });
+		if (!user) {
+			res.status(403).json({ message: 'User not assigned to this admin' });
+			return;
+		}
+
+		const application = await prisma.application.create({
+			data: {
+				userId: user.id,
+				companyName,
+				role,
+				applicationDate: new Date(applicationDate),
+				status,
+			},
+		});
+		res.status(201).json({ message: 'Application created', application });
+	} catch (error) {
+		res.status(500).json({ message: 'Failed to create application', error: error instanceof Error ? error.message : error });
+	}
+};
+
+// List applications for a user (admin only for assigned users)
+export const listUserApplications = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const adminId = req.adminId;
+		const { userId } = req.params;
+		const user = await prisma.user.findUnique({ where: { id: parseInt(userId), assignedAdminId: adminId } });
+		if (!user) {
+			res.status(403).json({ message: 'User not assigned to this admin' });
+			return;
+		}
+		const applications = await prisma.application.findMany({ where: { userId: user.id } });
+		res.status(200).json({ applications });
+	} catch (error) {
+		res.status(500).json({ message: 'Failed to fetch applications', error: error instanceof Error ? error.message : error });
+	}
+};
+
+// Update application status (admin only for assigned users)
+export const updateUserApplication = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const adminId = req.adminId;
+		const { userId, applicationId } = req.params;
+		const { status } = req.body;
+		const user = await prisma.user.findUnique({ where: { id: parseInt(userId), assignedAdminId: adminId } });
+		if (!user) {
+			res.status(403).json({ message: 'User not assigned to this admin' });
+			return;
+		}
+		const application = await prisma.application.update({
+			where: { id: parseInt(applicationId) },
+			data: { status },
+		});
+		res.status(200).json({ message: 'Application updated', application });
+	} catch (error) {
+		res.status(500).json({ message: 'Failed to update application', error: error instanceof Error ? error.message : error });
+	}
+};
+
+// Mark user as completed (disable user)
+export const markUserAsCompleted = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const adminId = req.adminId;
+		const { userId } = req.params;
+		const user = await prisma.user.findUnique({ where: { id: parseInt(userId), assignedAdminId: adminId } });
+		if (!user) {
+			res.status(403).json({ message: 'User not assigned to this admin' });
+			return;
+		}
+		await prisma.user.update({ where: { id: user.id }, data: { status: 'DISABLED' } });
+		await processAssignmentQueue();
+		res.status(200).json({ message: 'User marked as completed and disabled' });
+	} catch (error) {
+		res.status(500).json({ message: 'Failed to mark user as completed', error: error instanceof Error ? error.message : error });
 	}
 };

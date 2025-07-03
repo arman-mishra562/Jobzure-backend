@@ -104,7 +104,13 @@ export const loginUser = async (req: Request, res: any) => {
 		const user = await prisma.user.findUnique({
 			where: { email },
 			include: {
-				personalDetails: true
+				personalDetails: {
+					include: {
+						targetJobLocation: true,
+						interestedRoles: true,
+						intrstdIndstries: true,
+					},
+				},
 			}
 		});
 		if (!user) {
@@ -129,11 +135,27 @@ export const loginUser = async (req: Request, res: any) => {
 		});
 		const { password: _, ...userWithoutPassword } = user;
 
+		// Check completeness of personal details
+		let hasPersonalDetails = false;
+		if (user.personalDetails) {
+			const pd = user.personalDetails;
+			hasPersonalDetails =
+				!!pd.full_name &&
+				!!pd.personalEmail &&
+				!!pd.countryResident &&
+				!!pd.workAuthorization &&
+				typeof pd.salaryExp === 'number' && pd.salaryExp > 0 &&
+				typeof pd.visaSponsor === 'boolean' &&
+				Array.isArray(pd.targetJobLocation) && pd.targetJobLocation.length > 0 &&
+				Array.isArray(pd.interestedRoles) && pd.interestedRoles.length > 0 &&
+				Array.isArray(pd.intrstdIndstries) && pd.intrstdIndstries.length > 0;
+		}
+
 		res.status(200).json({
 			message: 'Login successful',
 			user: userWithoutPassword,
 			token,
-			hasPersonalDetails: !!user.personalDetails
+			hasPersonalDetails
 		});
 	} catch (error) {
 		console.error('Login error:', error);

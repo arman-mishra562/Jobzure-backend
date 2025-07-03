@@ -13,7 +13,13 @@ import {
     deleteAdmin,
     updateUser,
     deleteUser,
-    verifySuperAdmin
+    verifySuperAdmin,
+    getUserPersonalDetails,
+    updateUserPersonalDetails,
+    deleteUserPersonalDetails,
+    autoAssignUsers,
+    getAssignmentQueue,
+    dashboardSummary
 } from '../controllers/superAdmin.controller';
 import { verifyTokenSuperAdmin } from '../middlewares/middleware';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -43,5 +49,16 @@ router.get('/admins/:adminId', verifyTokenSuperAdmin, asyncHandler(getAdminDetai
 // User assignment route
 router.post('/assign-users', verifyTokenSuperAdmin, asyncHandler(assignUsersToAdmin));
 router.get('/admin-users', verifyTokenSuperAdmin, asyncHandler(getAdminUsers));
+
+// User personal details routes
+router.get('/users/:userId/personal-details', verifyTokenSuperAdmin, asyncHandler(getUserPersonalDetails));
+router.put('/users/:userId/personal-details', verifyTokenSuperAdmin, asyncHandler(updateUserPersonalDetails));
+router.delete('/users/:userId/personal-details', verifyTokenSuperAdmin, asyncHandler(deleteUserPersonalDetails));
+
+// Placeholder: router.post('/auto-assign-users', verifyTokenSuperAdmin, asyncHandler(autoAssignUsers));
+router.post('/auto-assign-users', verifyTokenSuperAdmin, asyncHandler(autoAssignUsers));
+router.get('/assignment-queue', verifyTokenSuperAdmin, asyncHandler(getAssignmentQueue));
+
+router.get('/dashboard/summary', verifyTokenSuperAdmin, asyncHandler(dashboardSummary));
 
 export default router; 

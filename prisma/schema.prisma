@@ -25,7 +25,6 @@ model Admin {
   tokenExpiry         DateTime?
   resetToken          String?   // for password resets
   resetTokenExpiry    DateTime?
-  companyListings     CompanyListing[]
   assignedUsers       User[]          // Users assigned to this admin
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
@@ -60,6 +59,9 @@ model User {
   assignedAdmin       Admin?           @relation(fields: [assignedAdminId], references: [id])
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
+  status              UserStatus       @default(ACTIVE)
+  applications        Application[]
+  assignmentQueue     UserAssignmentQueue?
 }
 
 model PersonalDetails {
@@ -80,20 +82,6 @@ model PersonalDetails {
   updatedAt           DateTime            @updatedAt
 }
 
-model CompanyListing {
-  id                 String   @id @default(cuid())
-  name               String   @unique
-  description        String
-  registrationNumber String   @unique
-  companyLocation    String
-  targetIndustry     String
-  role               String
-  adminId            String   
-  Admin              Admin    @relation(fields: [adminId], references: [id])
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-}
-
 model TargetJobLocation {
   value           String            @id
   personalDetails PersonalDetails[] @relation("JobLocations")
@@ -107,6 +95,25 @@ model InterestedRole {
 model InterestedIndustry {
   value           String            @id
   personalDetails PersonalDetails[] @relation("Industries")
+}
+
+model Application {
+  id              Int                @id @default(autoincrement())
+  user            User               @relation(fields: [userId], references: [id])
+  userId          Int
+  companyName     String
+  role            String
+  applicationDate DateTime
+  status          ApplicationStatus
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}
+
+model UserAssignmentQueue {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 enum Status{
@@ -126,4 +133,21 @@ enum CountryResident {
   FRANCE
   GERMANY
   ITALY
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  IN_REVIEW
+  INTERVIEW_SCHEDULED
+  INTERVIEW_PENDING
+  PENDING_RESULTS
+  REJECTED
+  SELECTED
+  OFFER_LETTER_SHARED
+  COMPLETED
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
 }
