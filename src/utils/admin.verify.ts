@@ -11,7 +11,9 @@ export const verifyAdmin = async (req: Request, res: any) => {
 		});
 
 		if (!admin) {
-			return res.status(400).json({ error: 'Invalid or expired verification link.' });
+			return res
+				.status(400)
+				.json({ error: 'Invalid or expired verification link.' });
 		}
 
 		if (admin.isVerified) {

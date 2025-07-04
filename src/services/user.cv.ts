@@ -85,19 +85,6 @@ export const handleResumeUpload = async (req: Request, res: any) => {
 					where: { userId },
 				});
 
-				// const data = {
-				// 	resumeUrl: gcsPath,
-				// 	full_name: '',
-				// 	personalEmail: '',
-				// 	countryResident: 'USA',
-				// 	targetJobLocation: 'USA',
-				// 	workAuthorization: 'NOT_SPECIFIED',
-				// 	interestedRoles: 'Full_Stack_Developer',
-				// 	intrstdIndstries: 'EDUCATION',
-				// 	salaryExp: 0,
-				// 	visaSponsor: false,
-				// };
-
 				if (personalDetails) {
 					await prisma.personalDetails.update({
 						where: { userId },
