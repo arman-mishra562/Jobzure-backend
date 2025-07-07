@@ -111,7 +111,7 @@ export const loginUser = async (req: Request, res: any) => {
 						intrstdIndstries: true,
 					},
 				},
-			},
+			}
 		});
 		if (!user) {
 			return res.status(401).json({ message: 'Invalid email or password' });
@@ -144,22 +144,18 @@ export const loginUser = async (req: Request, res: any) => {
 				!!pd.personalEmail &&
 				!!pd.countryResident &&
 				!!pd.workAuthorization &&
-				typeof pd.salaryExp === 'number' &&
-				pd.salaryExp > 0 &&
+				typeof pd.salaryExp === 'number' && pd.salaryExp > 0 &&
 				typeof pd.visaSponsor === 'boolean' &&
-				Array.isArray(pd.targetJobLocation) &&
-				pd.targetJobLocation.length > 0 &&
-				Array.isArray(pd.interestedRoles) &&
-				pd.interestedRoles.length > 0 &&
-				Array.isArray(pd.intrstdIndstries) &&
-				pd.intrstdIndstries.length > 0;
+				Array.isArray(pd.targetJobLocation) && pd.targetJobLocation.length > 0 &&
+				Array.isArray(pd.interestedRoles) && pd.interestedRoles.length > 0 &&
+				Array.isArray(pd.intrstdIndstries) && pd.intrstdIndstries.length > 0;
 		}
 
 		res.status(200).json({
 			message: 'Login successful',
 			user: userWithoutPassword,
 			token,
-			hasPersonalDetails,
+			hasPersonalDetails
 		});
 	} catch (error) {
 		console.error('Login error:', error);
@@ -177,7 +173,7 @@ export const forgotPassword = async (req: Request, res: any) => {
 		const user = await prisma.user.findUnique({ where: { email } });
 		if (!user) {
 			return res.json({
-				message: "If that email is registered, you'll receive a reset link.",
+				message: "If that email is registered, you'll receive a reset link."
 			});
 		}
 
@@ -190,7 +186,7 @@ export const forgotPassword = async (req: Request, res: any) => {
 		});
 		await sendForgetEmail(email, link);
 		res.json({
-			message: "If that email is registered, you'll receive a reset link.",
+			message: "If that email is registered, you'll receive a reset link."
 		});
 	} catch (error) {
 		console.error('Forgot Password error:', error);

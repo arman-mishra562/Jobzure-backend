@@ -139,9 +139,7 @@ export const verifyTokenSuperAdmin = async (
 		const token = authHeader.split(' ')[1];
 
 		if (!process.env.JWT_SECRET_SUPER_ADMIN) {
-			console.error(
-				'JWT_SECRET_SUPER_ADMIN is not defined in environment variables',
-			);
+			console.error('JWT_SECRET_SUPER_ADMIN is not defined in environment variables');
 			res.status(500).json({ message: 'Internal server error' });
 			return;
 		}
@@ -177,7 +175,7 @@ export const verifyTokenSuperAdmin = async (
 export const verifyAdminOrSuperAdmin = async (
 	req: Request,
 	res: Response,
-	next: NextFunction,
+	next: NextFunction
 ) => {
 	try {
 		const authHeader = req.headers.authorization;
@@ -191,33 +189,24 @@ export const verifyAdminOrSuperAdmin = async (
 		// Try admin token
 		if (process.env.JWT_SECRET_ADMIN) {
 			try {
-				const decoded = jwt.verify(token, process.env.JWT_SECRET_ADMIN) as {
-					adminId: string;
-				};
-				const admin = await prisma.admin.findUnique({
-					where: { id: decoded.adminId },
-				});
+				const decoded = jwt.verify(token, process.env.JWT_SECRET_ADMIN) as { adminId: string };
+				const admin = await prisma.admin.findUnique({ where: { id: decoded.adminId } });
 				if (admin) {
 					req.adminId = decoded.adminId;
 					adminValid = true;
 				}
-			} catch {}
+			} catch { }
 		}
 		// Try super admin token
 		if (!adminValid && process.env.JWT_SECRET_SUPER_ADMIN) {
 			try {
-				const decoded = jwt.verify(
-					token,
-					process.env.JWT_SECRET_SUPER_ADMIN,
-				) as { superAdminId: string };
-				const superAdmin = await prisma.superAdmin.findUnique({
-					where: { id: decoded.superAdminId },
-				});
+				const decoded = jwt.verify(token, process.env.JWT_SECRET_SUPER_ADMIN) as { superAdminId: string };
+				const superAdmin = await prisma.superAdmin.findUnique({ where: { id: decoded.superAdminId } });
 				if (superAdmin) {
 					req.superAdminId = decoded.superAdminId;
 					superAdminValid = true;
 				}
-			} catch {}
+			} catch { }
 		}
 		if (adminValid || superAdminValid) {
 			await next();
