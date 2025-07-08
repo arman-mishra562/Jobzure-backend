@@ -11,6 +11,7 @@ import './config/passport';
 import { apiLimiter } from './services/rateLimit';
 dotenv.config();
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(
 	cors({

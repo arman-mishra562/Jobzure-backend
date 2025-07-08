@@ -61,19 +61,19 @@ passport.serializeUser((user: any, done) => {
 passport.deserializeUser(async (data: any, done) => {
 	try {
 		if (!data || !data.id || !data.type) {
-			return done(new Error('Invalid session data'));
+			return done(null, false); // Invalid session data
 		}
 
 		if (data.type === 'user') {
 			const userId = typeof data.id === 'string' ? parseInt(data.id) : data.id;
 			if (isNaN(userId)) {
-				return done(new Error('Invalid user ID'));
+				return done(null, false); // Invalid user ID
 			}
 			const user = await prisma.user.findUnique({
 				where: { id: userId }
 			});
 			if (!user) {
-				return done(new Error('User not found'));
+				return done(null, false); // User not found
 			}
 			done(null, user);
 		} else {
@@ -81,7 +81,7 @@ passport.deserializeUser(async (data: any, done) => {
 				where: { id: data.id as string }
 			});
 			if (!admin) {
-				return done(new Error('Admin not found'));
+				return done(null, false); // Admin not found
 			}
 			done(null, admin);
 		}
