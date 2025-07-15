@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/Db';
 import { sendVerificationEmail, sendForgetEmail } from '../services/mail.service';
 import { v4 as uuidv4 } from 'uuid';
-import { processAssignmentQueue } from './superAdmin.controller';
+import { processAssignmentQueue, handleUserStatusChange, autoAssignUsers as autoAssignUsersService } from '../services/autoAssign.service';
 
 dotenv.config();
 
@@ -414,6 +414,14 @@ export const verifyAdmin = async (req: Request, res: Response): Promise<void> =>
 			}
 		});
 
+		// Trigger auto-assign when new admin is verified
+		try {
+			await autoAssignUsersService('admin_verification');
+		} catch (error) {
+			console.error('Auto-assign error after admin verification:', error);
+			// Don't fail the request if auto-assign fails
+		}
+
 		res.status(200).json({ message: 'Email verified successfully' });
 	} catch (error) {
 		console.error('Error verifying admin:', error);
@@ -501,8 +509,18 @@ export const markUserAsCompleted = async (req: Request, res: Response): Promise<
 			res.status(403).json({ message: 'User not assigned to this admin' });
 			return;
 		}
+
+		// Update user status to DISABLED
 		await prisma.user.update({ where: { id: user.id }, data: { status: 'DISABLED' } });
-		await processAssignmentQueue();
+
+		// Handle user status change and trigger auto-assign
+		try {
+			await handleUserStatusChange(user.id, 'DISABLED');
+		} catch (error) {
+			console.error('Error handling user status change:', error);
+			// Don't fail the request if auto-assign fails
+		}
+
 		res.status(200).json({ message: 'User marked as completed and disabled' });
 	} catch (error) {
 		res.status(500).json({ message: 'Failed to mark user as completed', error: error instanceof Error ? error.message : error });

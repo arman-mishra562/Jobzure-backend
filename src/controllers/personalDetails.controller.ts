@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../config/Db';
+import { autoAssignUsers } from '../services/autoAssign.service';
 
 export const createOrUpdatePersonalDetails = async (
 	req: Request,
@@ -128,6 +129,13 @@ export const createOrUpdatePersonalDetails = async (
 					intrstdIndstries: true,
 				},
 			});
+		}
+		// Trigger auto-assign after personal details are saved
+		try {
+			await autoAssignUsers('personal_details_submitted');
+		} catch (error) {
+			console.error('Auto-assign error after personal details submission:', error);
+			// Don't fail the request if auto-assign fails
 		}
 
 		res.status(200).json({

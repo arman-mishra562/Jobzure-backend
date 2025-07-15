@@ -21,6 +21,7 @@ import {
 	uploadResume,
 } from '../services/user.cv';
 import { asyncHandler } from '../utils/asyncHandler';
+import { getUserApplications, getUserApplicationById } from '../controllers/application.controller';
 
 const router = express.Router();
 
@@ -44,4 +45,9 @@ router.get(
 router.post('/uploadResume', verifyToken, uploadResume, handleResumeUpload);
 router.get('/getResumeUrl', verifyToken, getResumeUrl);
 router.post('/deleteResume', verifyToken, deleteResume);
+
+// User application routes (protected)
+router.get('/applications', verifyToken, asyncHandler(getUserApplications));
+router.get('/applications/:applicationId', verifyToken, asyncHandler(getUserApplicationById));
+
 export default router;

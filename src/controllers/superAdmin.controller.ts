@@ -6,6 +6,7 @@ import prisma from '../config/Db';
 import { sendVerificationEmail } from '../services/mail.service';
 import dotenv from 'dotenv';
 import { Prisma } from '@prisma/client';
+import { autoAssignUsers as autoAssignUsersService, getAssignmentStats, updateAutoAssignConfig, getAutoAssignConfig, rebalanceAdminWorkloads } from '../services/autoAssign.service';
 
 dotenv.config();
 
@@ -664,38 +665,17 @@ export const deleteUserPersonalDetails = async (req: Request, res: Response) => 
 // Assign unassigned users to admins or queue them
 export const autoAssignUsers = async (req: Request, res: Response) => {
     try {
-        // Get all admins and their assigned user counts
-        const admins = await prisma.admin.findMany({
-            include: { assignedUsers: true }
+        const result = await autoAssignUsersService('manual_trigger');
+        res.status(200).json({
+            message: 'Auto-assignment complete',
+            ...result
         });
-        // Get all unassigned users (not disabled)
-        const unassignedUsers = await prisma.user.findMany({
-            where: { assignedAdminId: null, status: 'ACTIVE' }
-        });
-        let assigned = 0, queued = 0;
-        for (const user of unassignedUsers) {
-            // Find admin with the fewest users and under the limit
-            const availableAdmins = admins.filter(a => a.assignedUsers.length < MAX_USERS_PER_ADMIN);
-            if (availableAdmins.length > 0) {
-                // Assign to the admin with the fewest users
-                availableAdmins.sort((a, b) => a.assignedUsers.length - b.assignedUsers.length);
-                await prisma.user.update({ where: { id: user.id }, data: { assignedAdminId: availableAdmins[0].id } });
-                assigned++;
-                // Update in-memory count for this loop
-                availableAdmins[0].assignedUsers.push(user);
-            } else {
-                // Add to queue if not already queued
-                const alreadyQueued = await prisma.userAssignmentQueue.findUnique({ where: { userId: user.id } });
-                if (!alreadyQueued) {
-                    await prisma.userAssignmentQueue.create({ data: { userId: user.id } });
-                    queued++;
-                }
-            }
-        }
-        res.status(200).json({ message: 'Auto-assignment complete', assigned, queued });
     } catch (error) {
         console.error('Auto-assignment error:', error);
-        res.status(500).json({ message: 'Failed to auto-assign users', error: error instanceof Error ? error.message : error });
+        res.status(500).json({
+            message: 'Failed to auto-assign users',
+            error: error instanceof Error ? error.message : error
+        });
     }
 };
 
@@ -735,26 +715,71 @@ export const getAssignmentQueue = async (req: Request, res: Response) => {
 
 export const dashboardSummary = async (req: Request, res: Response) => {
     try {
-        const totalUsers = await prisma.user.count();
-        const activeUsers = await prisma.user.count({ where: { status: 'ACTIVE' } });
-        const disabledUsers = await prisma.user.count({ where: { status: 'DISABLED' } });
-        const totalAdmins = await prisma.admin.count();
-        const usersInQueue = await prisma.userAssignmentQueue.count();
-        const usersAssigned = await prisma.user.count({ where: { assignedAdminId: { not: null } } });
-        const usersUnassigned = await prisma.user.count({ where: { assignedAdminId: null } });
+        const assignmentStats = await getAssignmentStats();
         const applicationsCount = await prisma.application.count();
+
         res.status(200).json({
-            totalUsers,
-            activeUsers,
-            disabledUsers,
-            totalAdmins,
-            usersInQueue,
-            usersAssigned,
-            usersUnassigned,
+            ...assignmentStats,
             applicationsCount
         });
     } catch (error) {
         console.error('Dashboard summary error:', error);
         res.status(500).json({ message: 'Failed to fetch dashboard summary', error: error instanceof Error ? error.message : error });
+    }
+};
+
+// Get auto-assign configuration
+export const getAutoAssignConfiguration = async (req: Request, res: Response) => {
+    try {
+        const config = getAutoAssignConfig();
+        res.status(200).json({ config });
+    } catch (error) {
+        console.error('Error getting auto-assign configuration:', error);
+        res.status(500).json({
+            message: 'Failed to get auto-assign configuration',
+            error: error instanceof Error ? error.message : error
+        });
+    }
+};
+
+// Update auto-assign configuration
+export const updateAutoAssignConfiguration = async (req: Request, res: Response) => {
+    try {
+        const { maxUsersPerAdmin, enableRoundRobin, enableLoadBalancing, queueProcessingEnabled } = req.body;
+
+        const updatedConfig = updateAutoAssignConfig({
+            maxUsersPerAdmin,
+            enableRoundRobin,
+            enableLoadBalancing,
+            queueProcessingEnabled
+        });
+
+        res.status(200).json({
+            message: 'Auto-assign configuration updated successfully',
+            config: updatedConfig
+        });
+    } catch (error) {
+        console.error('Error updating auto-assign configuration:', error);
+        res.status(500).json({
+            message: 'Failed to update auto-assign configuration',
+            error: error instanceof Error ? error.message : error
+        });
+    }
+};
+
+// Rebalance admin workloads
+export const rebalanceAdminWorkloadsEndpoint = async (req: Request, res: Response) => {
+    try {
+        const result = await rebalanceAdminWorkloads();
+        res.status(200).json({
+            message: 'Admin workloads rebalanced successfully',
+            ...result
+        });
+    } catch (error) {
+        console.error('Error rebalancing admin workloads:', error);
+        res.status(500).json({
+            message: 'Failed to rebalance admin workloads',
+            error: error instanceof Error ? error.message : error
+        });
     }
 }; 

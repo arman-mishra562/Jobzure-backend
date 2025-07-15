@@ -19,7 +19,10 @@ import {
     deleteUserPersonalDetails,
     autoAssignUsers,
     getAssignmentQueue,
-    dashboardSummary
+    dashboardSummary,
+    getAutoAssignConfiguration,
+    updateAutoAssignConfiguration,
+    rebalanceAdminWorkloadsEndpoint
 } from '../controllers/superAdmin.controller';
 import { verifyTokenSuperAdmin } from '../middlewares/middleware';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -60,5 +63,10 @@ router.post('/auto-assign-users', verifyTokenSuperAdmin, asyncHandler(autoAssign
 router.get('/assignment-queue', verifyTokenSuperAdmin, asyncHandler(getAssignmentQueue));
 
 router.get('/dashboard/summary', verifyTokenSuperAdmin, asyncHandler(dashboardSummary));
+
+// Auto-assign configuration routes
+router.get('/auto-assign-config', verifyTokenSuperAdmin, asyncHandler(getAutoAssignConfiguration));
+router.put('/auto-assign-config', verifyTokenSuperAdmin, asyncHandler(updateAutoAssignConfiguration));
+router.post('/rebalance-workloads', verifyTokenSuperAdmin, asyncHandler(rebalanceAdminWorkloadsEndpoint));
 
 export default router; 
