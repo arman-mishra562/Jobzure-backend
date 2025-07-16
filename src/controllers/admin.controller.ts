@@ -549,9 +549,12 @@ export const getAdminDashboardSummary = async (req: Request, res: Response): Pro
 				user: { assignedAdminId: adminId }
 			}
 		});
+		const adminDetails = await prisma.admin.findUnique({ where: { id: adminId } });
+
 		res.status(200).json({
 			message: 'Dashboard summary fetched successfully',
 			data: {
+				adminDetails,
 				totalAssignedUsers,
 				completedUsers,
 				activeUsers,
