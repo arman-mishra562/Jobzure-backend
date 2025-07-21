@@ -17,7 +17,7 @@ export const registerSuperAdmin = async (req: Request, res: Response) => {
         const { email, name, password } = req.body;
         const token = uuidv4();
         const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-        const verifyUrl = `${process.env.CLIENT_URL}/super-admin/verify?token=${token}`;
+        const verifyUrl = `${process.env.FRONTEND_URL}/super-admin/verify?token=${token}`;
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
